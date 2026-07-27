@@ -58,7 +58,7 @@ export function KpiCards({
     { value: treeAccuracy * 100, decimals: 1, prefix: '', suffix: '%', lbl: 'Live decision-tree accuracy' },
   ];
   return (
-    <div className="grid grid-4">
+    <div className="grid grid-4 bento">
       {items.map((it, i) => (
         <Tilt className="card kpi" max={6} key={i} style={{ animationDelay: `${i * 60}ms` }}>
           <div className="val">

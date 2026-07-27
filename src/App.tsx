@@ -23,6 +23,7 @@ import {
   Recommendations,
   SegmentCards,
 } from './components/Sections';
+import { Reveal, ScrollProgress } from './components/Reveal';
 
 const NUMERIC_COLS: { key: keyof CleanRecord; label: string }[] = [
   { key: 'purchaseAmount', label: 'Amount' },
@@ -268,6 +269,7 @@ export default function App() {
 
   return (
     <div>
+      <ScrollProgress />
       <div className="bg-orbs">
         <span />
         <span />
@@ -277,97 +279,113 @@ export default function App() {
 
       <main className="app-shell">
         <section className="block" id="dashboard">
-          <KpiCards
-            avgPurchase={kpis.avgPurchase}
-            avgFrequency={kpis.avgFrequency}
-            willPurchasePct={kpis.willPurchasePct}
-            treeAccuracy={treeBundle.metrics.accuracy}
-          />
+          <Reveal index={1}>
+            <KpiCards
+              avgPurchase={kpis.avgPurchase}
+              avgFrequency={kpis.avgFrequency}
+              willPurchasePct={kpis.willPurchasePct}
+              treeAccuracy={treeBundle.metrics.accuracy}
+            />
+          </Reveal>
         </section>
 
         <section className="block">
-          <div className="block-head">
-            <h2>Explore the live data</h2>
-            <p className="desc">Filters recompute every KPI, chart, and segment below in real time.</p>
-          </div>
-          <FilterBar
-            income={income} setIncome={setIncome}
-            season={season} setSeason={setSeason}
-            gender={gender} setGender={setGender}
-            search={search} setSearch={setSearch}
-            count={filtered.length} total={allRecords.length}
-            onReset={resetFilters}
-          />
-          <DataExplorer records={filtered} />
-        </section>
-
-        <section className="block">
-          <div className="block-head">
-            <h2>Customer segments (live K-Means, k=2)</h2>
-            <p className="desc">Recomputed from the current filter selection above.</p>
-          </div>
-          <SegmentCards segments={segments} />
-        </section>
-
-        <section className="block">
-          <div className="block-head">
-            <h2>Segment &amp; correlation charts</h2>
-          </div>
-          <div className="grid grid-2">
-            <div className="card chart-card">
-              <h3>Avg. purchase amount by segment</h3>
-              <BarChart labels={barLabels} values={barValues} colors={barColors} valueFormatter={(v) => `$${v.toFixed(0)}`} />
+          <Reveal index={2}>
+            <div className="block-head">
+              <h2>Explore the live data</h2>
+              <p className="desc">Filters recompute every KPI, chart, and segment below in real time.</p>
             </div>
-            <div className="card chart-card">
-              <h3>Purchase amount vs. frequency</h3>
-              <ScatterChart groups={scatterGroups} xLabel="Purchase Amount ($)" yLabel="Frequency / month" />
+            <FilterBar
+              income={income} setIncome={setIncome}
+              season={season} setSeason={setSeason}
+              gender={gender} setGender={setGender}
+              search={search} setSearch={setSearch}
+              count={filtered.length} total={allRecords.length}
+              onReset={resetFilters}
+            />
+            <DataExplorer records={filtered} />
+          </Reveal>
+        </section>
+
+        <section className="block">
+          <Reveal index={3}>
+            <div className="block-head">
+              <h2>Customer segments (live K-Means, k=2)</h2>
+              <p className="desc">Recomputed from the current filter selection above.</p>
             </div>
-          </div>
-          <div className="grid grid-2" style={{ marginTop: 16 }}>
-            <div className="card chart-card">
-              <h3>Avg. purchase frequency by month</h3>
-              <LineChart series={[{ name: 'Purchase frequency', color: '#6d8bff', points: monthlyTrend }]} />
+            <SegmentCards segments={segments} />
+          </Reveal>
+        </section>
+
+        <section className="block">
+          <Reveal index={4}>
+            <div className="block-head">
+              <h2>Segment &amp; correlation charts</h2>
             </div>
-            <div className="card chart-card">
-              <h3>Correlation heatmap</h3>
-              <Heatmap labels={NUMERIC_COLS.map((c) => c.label)} matrix={correlation} />
+            <div className="grid grid-2">
+              <div className="card chart-card">
+                <h3>Avg. purchase amount by segment</h3>
+                <BarChart labels={barLabels} values={barValues} colors={barColors} valueFormatter={(v) => `$${v.toFixed(0)}`} />
+              </div>
+              <div className="card chart-card">
+                <h3>Purchase amount vs. frequency</h3>
+                <ScatterChart groups={scatterGroups} xLabel="Purchase Amount ($)" yLabel="Frequency / month" />
+              </div>
             </div>
-          </div>
+            <div className="grid grid-2" style={{ marginTop: 16 }}>
+              <div className="card chart-card">
+                <h3>Avg. purchase frequency by month</h3>
+                <LineChart series={[{ name: 'Purchase frequency', color: '#6d8bff', points: monthlyTrend }]} />
+              </div>
+              <div className="card chart-card">
+                <h3>Correlation heatmap</h3>
+                <Heatmap labels={NUMERIC_COLS.map((c) => c.label)} matrix={correlation} />
+              </div>
+            </div>
+          </Reveal>
         </section>
 
         <section className="block">
-          <div className="block-head">
-            <h2>Predictive models (trained live, right now)</h2>
-          </div>
-          <ModelCards
-            regression={regression}
-            treeMetrics={treeBundle.metrics}
-            treeDepthVal={treeBundle.depth}
-            kmeansIters={clustered.iterations}
-          />
+          <Reveal index={5}>
+            <div className="block-head">
+              <h2>Predictive models (trained live, right now)</h2>
+            </div>
+            <ModelCards
+              regression={regression}
+              treeMetrics={treeBundle.metrics}
+              treeDepthVal={treeBundle.depth}
+              kmeansIters={clustered.iterations}
+            />
+          </Reveal>
         </section>
 
         <section className="block">
-          <div className="block-head">
-            <h2>Try the live predictor</h2>
-            <p className="desc">Adjust a hypothetical customer profile and see the trained tree's prediction update instantly.</p>
-          </div>
-          <LivePredictor tree={treeBundle.tree} onRetrain={() => setSeed((s) => s + 1)} seed={seed} />
+          <Reveal index={6}>
+            <div className="block-head">
+              <h2>Try the live predictor</h2>
+              <p className="desc">Adjust a hypothetical customer profile and see the trained tree's prediction update instantly.</p>
+            </div>
+            <LivePredictor tree={treeBundle.tree} onRetrain={() => setSeed((s) => s + 1)} seed={seed} />
+          </Reveal>
         </section>
 
         <section className="block">
-          <div className="block-head">
-            <h2>Key findings</h2>
-            <p className="desc">Recalculated on every load from the live dataset above.</p>
-          </div>
-          <Findings items={findings} />
+          <Reveal index={7}>
+            <div className="block-head">
+              <h2>Key findings</h2>
+              <p className="desc">Recalculated on every load from the live dataset above.</p>
+            </div>
+            <Findings items={findings} />
+          </Reveal>
         </section>
 
         <section className="block">
-          <div className="block-head">
-            <h2>Recommendations</h2>
-          </div>
-          <Recommendations items={recommendations} />
+          <Reveal index={8}>
+            <div className="block-head">
+              <h2>Recommendations</h2>
+            </div>
+            <Recommendations items={recommendations} />
+          </Reveal>
         </section>
       </main>
 

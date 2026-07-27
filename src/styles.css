@@ -29,6 +29,33 @@ body {
 a { color: var(--accent); }
 html { scroll-behavior: smooth; }
 
+/* Subtle film-grain noise overlay for depth, sits above the gradient bg,
+   below all content. */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  opacity: 0.035; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+html { scrollbar-color: var(--border) transparent; scrollbar-width: thin; }
+
+/* Scroll progress bar */
+.scroll-progress {
+  position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 50;
+  background: transparent; pointer-events: none;
+}
+.scroll-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #6d8bff, #b06dff, #3fd18f);
+  transition: width 0.1s linear;
+}
+
 .app-shell { max-width: 1280px; margin: 0 auto; padding: 0 24px 96px; position: relative; z-index: 1; }
 
 /* ---------- Floating background orbs ---------- */
@@ -192,18 +219,49 @@ header.hero p.sub { color: var(--muted); font-size: 1.02rem; max-width: 640px; m
 .btn-github svg { flex-shrink: 0; }
 
 /* ---------- Section shell ---------- */
-section.block { margin-bottom: 52px; animation: fadeUp 0.5s ease both; }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+section.block { margin-bottom: 64px; }
+
+/* Scroll-triggered reveal (replaces the old mount-only fadeUp). */
+.reveal {
+  position: relative;
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal.in-view { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+}
+.section-num {
+  position: absolute;
+  left: -8px;
+  top: -34px;
+  font-size: 3rem;
+  font-weight: 800;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(109, 139, 255, 0.35);
+  letter-spacing: -0.02em;
+  user-select: none;
+  z-index: -1;
+}
+@media (max-width: 700px) {
+  .section-num { display: none; }
+}
+
 .block-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
 .block-head h2 { font-size: 1.25rem; margin: 0; border-left: 3px solid var(--accent); padding-left: 12px; }
 .block-head p.desc { margin: 0; color: var(--muted); font-size: 0.85rem; max-width: 480px; }
 
 /* ---------- Cards / grid ---------- */
 .card {
-  background: linear-gradient(180deg, var(--panel) 0%, var(--panel2) 100%);
-  border: 1px solid var(--border); border-radius: 10px; padding: 20px;
-  transition: box-shadow 0.3s ease;
+  background: linear-gradient(180deg, rgba(23, 26, 38, 0.55) 0%, rgba(18, 20, 29, 0.65) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px; padding: 20px;
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
+.card:hover { border-color: rgba(109, 139, 255, 0.3); }
 .grid { display: grid; gap: 16px; }
 .grid-2 { grid-template-columns: 1fr 1fr; }
 .grid-3 { grid-template-columns: repeat(3, 1fr); }
@@ -211,6 +269,23 @@ section.block { margin-bottom: 52px; animation: fadeUp 0.5s ease both; }
 .grid-auto { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
 @media (max-width: 900px) {
   .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+}
+
+/* Bento-style asymmetric layout for the KPI row: first card is a large
+   2x2 "hero stat", the rest tuck around it instead of four flat equal
+   boxes in a row. */
+.grid-4.bento {
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 120px;
+}
+.grid-4.bento > *:nth-child(1) { grid-column: span 2; grid-row: span 2; }
+.grid-4.bento > *:nth-child(4) { grid-column: span 2; }
+.kpi { display: flex; flex-direction: column; justify-content: center; height: 100%; }
+.grid-4.bento > *:nth-child(1) .kpi .val { font-size: 2.6rem; }
+@media (max-width: 900px) {
+  .grid-4.bento { grid-template-columns: 1fr; grid-auto-rows: auto; }
+  .grid-4.bento > *:nth-child(1),
+  .grid-4.bento > *:nth-child(4) { grid-column: span 1; grid-row: span 1; }
 }
 
 /* Staggered card entrance. Note: only opacity is animated here (never
