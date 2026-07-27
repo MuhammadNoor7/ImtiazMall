@@ -1,6 +1,8 @@
 import React from 'react';
 import { ClassificationMetrics, RegressionResult } from '../lib/ml';
 import { GENDERS, SEASONS } from '../lib/data';
+import { Tilt } from './Tilt';
+import { CountUp } from './CountUp';
 
 export function Header({ recordCount, clusterCount, accuracy }: { recordCount: number; clusterCount: number; accuracy: number }) {
   return (
@@ -19,6 +21,15 @@ export function Header({ recordCount, clusterCount, accuracy }: { recordCount: n
         <span className="badge"><b>{clusterCount}</b>&nbsp;live segments</span>
         <span className="badge"><b>{(accuracy * 100).toFixed(1)}%</b>&nbsp;decision tree accuracy</span>
       </div>
+      <div className="hero-cta">
+        <a className="btn-demo" href="#dashboard">Demo</a>
+        <a className="btn-github" href="https://github.com/MuhammadNoor7/ImtiazMall" target="_blank" rel="noopener noreferrer">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
+          </svg>
+          GitHub
+        </a>
+      </div>
     </header>
   );
 }
@@ -35,18 +46,20 @@ export function KpiCards({
   treeAccuracy: number;
 }) {
   const items = [
-    { val: `$${avgPurchase.toFixed(2)}`, lbl: 'Average purchase amount' },
-    { val: avgFrequency.toFixed(2), lbl: 'Avg purchases / month' },
-    { val: `${willPurchasePct.toFixed(1)}%`, lbl: 'Will purchase next month' },
-    { val: `${(treeAccuracy * 100).toFixed(1)}%`, lbl: 'Live decision-tree accuracy' },
+    { value: avgPurchase, decimals: 2, prefix: '$', suffix: '', lbl: 'Average purchase amount' },
+    { value: avgFrequency, decimals: 2, prefix: '', suffix: '', lbl: 'Avg purchases / month' },
+    { value: willPurchasePct, decimals: 1, prefix: '', suffix: '%', lbl: 'Will purchase next month' },
+    { value: treeAccuracy * 100, decimals: 1, prefix: '', suffix: '%', lbl: 'Live decision-tree accuracy' },
   ];
   return (
     <div className="grid grid-4">
       {items.map((it, i) => (
-        <div className="card kpi" key={i}>
-          <div className="val">{it.val}</div>
+        <Tilt className="card kpi" max={6} key={i} style={{ animationDelay: `${i * 60}ms` }}>
+          <div className="val">
+            <CountUp value={it.value} decimals={it.decimals} prefix={it.prefix} suffix={it.suffix} />
+          </div>
           <div className="lbl">{it.lbl}</div>
-        </div>
+        </Tilt>
       ))}
     </div>
   );
@@ -119,7 +132,7 @@ export function SegmentCards({
   return (
     <div className="grid grid-2">
       {segments.map((s, i) => (
-        <div className={`card segment ${s.tone}`} key={i}>
+        <Tilt className={`card segment ${s.tone}`} max={5} key={i}>
           <span className="tag">Cluster {i} &middot; {s.size} customers ({s.pct.toFixed(0)}%)</span>
           <h3>{s.label}</h3>
           <table>
@@ -131,7 +144,7 @@ export function SegmentCards({
               <tr><td>Will purchase next month</td><td>{s.willPurchasePct.toFixed(1)}%</td></tr>
             </tbody>
           </table>
-        </div>
+        </Tilt>
       ))}
     </div>
   );
@@ -150,7 +163,7 @@ export function ModelCards({
 }) {
   return (
     <div className="grid grid-3">
-      <div className="card model bad">
+      <Tilt className="card model bad" max={6}>
         <h3 style={{ margin: 0, fontSize: '0.95rem' }}>A) Linear Regression</h3>
         <div className="score">R&sup2; = {regression.r2.toFixed(4)}</div>
         <p className="note">
@@ -162,8 +175,8 @@ export function ModelCards({
           <li>MAE {regression.mae.toFixed(2)} &middot; RMSE {regression.rmse.toFixed(2)}</li>
           <li>Weak fit &mdash; relationships here are non-linear</li>
         </ul>
-      </div>
-      <div className="card model good">
+      </Tilt>
+      <Tilt className="card model good" max={6}>
         <h3 style={{ margin: 0, fontSize: '0.95rem' }}>B) Decision Tree</h3>
         <div className="score">{(treeMetrics.accuracy * 100).toFixed(1)}% accuracy</div>
         <p className="note">
@@ -180,8 +193,8 @@ export function ModelCards({
           <li>Precision {(treeMetrics.precision * 100).toFixed(1)}% &middot; Recall {(treeMetrics.recall * 100).toFixed(1)}%</li>
           <li>F1 score {(treeMetrics.f1 * 100).toFixed(1)}%</li>
         </ul>
-      </div>
-      <div className="card model good">
+      </Tilt>
+      <Tilt className="card model good" max={6}>
         <h3 style={{ margin: 0, fontSize: '0.95rem' }}>C) K-Means Clustering</h3>
         <div className="score">k = 2</div>
         <p className="note">
@@ -192,7 +205,7 @@ export function ModelCards({
           <li>No labels required &mdash; purely unsupervised</li>
           <li>Directly maps to two marketing segments</li>
         </ul>
-      </div>
+      </Tilt>
     </div>
   );
 }
@@ -201,10 +214,10 @@ export function Findings({ items }: { items: { tag: string; text: string }[] }) 
   return (
     <div className="grid grid-auto">
       {items.map((f, i) => (
-        <div className="card finding" key={i}>
+        <Tilt className="card finding" max={4} key={i}>
           <div className="n">{f.tag}</div>
           <p>{f.text}</p>
-        </div>
+        </Tilt>
       ))}
     </div>
   );

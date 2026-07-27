@@ -27,8 +27,77 @@ body {
 }
 
 a { color: var(--accent); }
+html { scroll-behavior: smooth; }
 
-.app-shell { max-width: 1280px; margin: 0 auto; padding: 0 24px 96px; }
+.app-shell { max-width: 1280px; margin: 0 auto; padding: 0 24px 96px; position: relative; z-index: 1; }
+
+/* ---------- Floating background orbs ---------- */
+.bg-orbs {
+  position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+}
+.bg-orbs span {
+  position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.35;
+  will-change: transform;
+}
+.bg-orbs span:nth-child(1) {
+  width: 420px; height: 420px; top: -120px; left: -80px;
+  background: radial-gradient(circle, #6d8bff 0%, transparent 70%);
+  animation: orbFloat1 22s ease-in-out infinite;
+}
+.bg-orbs span:nth-child(2) {
+  width: 360px; height: 360px; top: 10%; right: -100px;
+  background: radial-gradient(circle, #b06dff 0%, transparent 70%);
+  animation: orbFloat2 26s ease-in-out infinite;
+}
+.bg-orbs span:nth-child(3) {
+  width: 300px; height: 300px; bottom: -80px; left: 30%;
+  background: radial-gradient(circle, #3fd18f 0%, transparent 70%);
+  animation: orbFloat3 30s ease-in-out infinite;
+}
+@keyframes orbFloat1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(60px, 80px) scale(1.15); }
+}
+@keyframes orbFloat2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-70px, 50px) scale(1.1); }
+}
+@keyframes orbFloat3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(40px, -60px) scale(1.2); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bg-orbs span { animation: none; }
+}
+
+/* ---------- Tilt / 3D cards ----------
+   .tilt is the grid item: it owns the mouse-driven transform and the hover
+   shadow (must NOT clip, so no overflow:hidden here). .tilt-body is the
+   actual visual card (background/border/padding via the passed className)
+   and is the one that clips the glare highlight to its rounded corners. */
+.tilt {
+  position: relative;
+  height: 100%;
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: box-shadow 0.3s ease;
+  border-radius: 16px;
+}
+.tilt:hover {
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(109, 139, 255, 0.25);
+}
+.tilt-body {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+}
+.tilt-glare {
+  position: absolute; inset: 0; pointer-events: none; z-index: 2;
+  transition: opacity 0.3s ease;
+  border-radius: inherit;
+}
+.tilt-content { position: relative; z-index: 1; height: 100%; }
 
 /* ---------- Loading ---------- */
 .loading-screen {
@@ -55,6 +124,8 @@ header.hero {
   text-align: center;
   max-width: 1280px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 .eyebrow {
   display: inline-flex; align-items: center; gap: 8px;
@@ -89,6 +160,26 @@ header.hero p.sub { color: var(--muted); font-size: 1.02rem; max-width: 640px; m
 }
 .badge b { color: var(--text); }
 
+.hero-cta { display: flex; gap: 14px; justify-content: center; margin-top: 28px; flex-wrap: wrap; }
+.btn-demo, .btn-github {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 28px; border-radius: 999px; font-size: 0.95rem; font-weight: 600;
+  text-decoration: none; transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+.btn-demo {
+  background: linear-gradient(135deg, #6d8bff 0%, #b06dff 100%);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(109, 139, 255, 0.35);
+}
+.btn-demo:hover { filter: brightness(1.1); transform: translateY(-2px) scale(1.03); box-shadow: 0 14px 32px rgba(109, 139, 255, 0.5); }
+.btn-demo:active, .btn-github:active { transform: translateY(0) scale(0.97); }
+.btn-github {
+  background: transparent; color: var(--text);
+  border: 1.5px solid var(--border);
+}
+.btn-github:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px) scale(1.03); }
+.btn-github svg { flex-shrink: 0; }
+
 /* ---------- Section shell ---------- */
 section.block { margin-bottom: 52px; animation: fadeUp 0.5s ease both; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
@@ -100,6 +191,7 @@ section.block { margin-bottom: 52px; animation: fadeUp 0.5s ease both; }
 .card {
   background: linear-gradient(180deg, var(--panel) 0%, var(--panel2) 100%);
   border: 1px solid var(--border); border-radius: 16px; padding: 20px;
+  transition: box-shadow 0.3s ease;
 }
 .grid { display: grid; gap: 16px; }
 .grid-2 { grid-template-columns: 1fr 1fr; }
@@ -108,6 +200,26 @@ section.block { margin-bottom: 52px; animation: fadeUp 0.5s ease both; }
 .grid-auto { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
 @media (max-width: 900px) {
   .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+}
+
+/* Staggered card entrance. Note: only opacity is animated here (never
+   transform) because .tilt elements drive `transform` themselves via
+   inline styles for the mouse-tilt effect, and a fill-mode animation on
+   the same property would permanently win over the inline style. */
+.grid > .card, .grid > .tilt {
+  animation: cardIn 0.5s ease both;
+}
+.grid > .card:nth-child(1), .grid > .tilt:nth-child(1) { animation-delay: 0.02s; }
+.grid > .card:nth-child(2), .grid > .tilt:nth-child(2) { animation-delay: 0.08s; }
+.grid > .card:nth-child(3), .grid > .tilt:nth-child(3) { animation-delay: 0.14s; }
+.grid > .card:nth-child(4), .grid > .tilt:nth-child(4) { animation-delay: 0.2s; }
+.grid > .card:nth-child(5), .grid > .tilt:nth-child(5) { animation-delay: 0.26s; }
+@keyframes cardIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .grid > .card, .grid > .tilt { animation: none; }
 }
 
 /* ---------- KPIs ---------- */
@@ -234,5 +346,6 @@ table.data-table tr:hover td { background: rgba(109,139,255,0.06); }
 footer.site-footer {
   text-align: center; color: var(--muted); font-size: 0.8rem; padding: 32px 24px;
   border-top: 1px solid var(--border); margin-top: 40px;
+  position: relative; z-index: 1;
 }
 footer.site-footer code { background: var(--panel2); padding: 2px 6px; border-radius: 6px; }

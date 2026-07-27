@@ -268,10 +268,15 @@ export default function App() {
 
   return (
     <div>
+      <div className="bg-orbs">
+        <span />
+        <span />
+        <span />
+      </div>
       <Header recordCount={allRecords.length} clusterCount={2} accuracy={treeBundle.metrics.accuracy} />
 
       <main className="app-shell">
-        <section className="block">
+        <section className="block" id="dashboard">
           <KpiCards
             avgPurchase={kpis.avgPurchase}
             avgFrequency={kpis.avgFrequency}
